@@ -29,18 +29,18 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install Qt 6.10.3 (aqtinstall, no Qt account needed)
+      - name: Install Qt 6.10.2 (aqtinstall, no Qt account needed)
         shell: pwsh
         run: |
           pip install aqtinstall==3.3.0
-          aqt install-qt windows desktop 6.10.3 win64_msvc2022_64 `
+          aqt install-qt windows desktop 6.10.2 win64_msvc2022_64 `
             --outputdir D:\Qt `
             -m qt5compat qtconnectivity qtgraphs qtmultimedia qtserialbus qtserialport qtwebsockets
-          if (-not (Test-Path 'D:\Qt\6.10.3\msvc2022_64\bin\Qt6Core.dll')) { throw 'Qt install failed' }
+          if (-not (Test-Path 'D:\Qt\6.10.2\msvc2022_64\bin\Qt6Core.dll')) { throw 'Qt install failed' }
 
       - name: Add Qt to PATH
         shell: pwsh
-        run: Add-Content $env:GITHUB_PATH 'D:\Qt\6.10.3\msvc2022_64\bin'
+        run: Add-Content $env:GITHUB_PATH 'D:\Qt\6.10.2\msvc2022_64\bin'
 
       - name: Configure (GPLv3 free build)
         shell: pwsh
