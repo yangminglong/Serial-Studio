@@ -1,0 +1,78 @@
+#
+# Free GPLv3 build of Serial Studio (excludes all Pro/commercial modules).
+# Manual trigger only: Actions tab -> "Build GPL3 (free)" -> Run workflow.
+#
+
+name: Build GPL3 (free)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows-gpl3:
+    runs-on: windows-latest
+    timeout-minutes: 150
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Qt 6.11.2 (aqtinstall, no Qt account needed)
+        shell: pwsh
+        run: |
+          pip install aqtinstall==3.3.0
+          aqt install-qt windows desktop 6.11.2 win64_msvc2022_64 `
+            --outputdir D:\Qt `
+            -m qt5compat qtconnectivity qtgraphs qtmultimedia qtserialbus qtserialport qtwebsockets
+          if (-not (Test-Path 'D:\Qt\6.11.2\msvc2022_64\bin\Qt6Core.dll')) { throw 'Qt install failed' }
+
+      - name: Add Qt to PATH
+        shell: pwsh
+        run: Add-Content $env:GITHUB_PATH 'D:\Qt\6.11.2\msvc2022_64\bin'
+
+      - name: Configure (GPLv3 free build)
+        shell: pwsh
+        run: >
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_GPL3=ON
+          -DBUILD_COMMERCIAL=OFF
+          -DENABLE_GRPC=OFF
+          -DWITH_WEBENGINE=OFF
+          -DSS_ENABLE_OPCUA=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Deploy Qt runtime (windeployqt)
+        shell: pwsh
+        run: |
+          $exe = 'build/app/Serial-Studio-GPL3.exe'
+          if (-not (Test-Path $exe)) {
+            Get-ChildItem -Recurse build -Filter *.exe | Select-Object -First 5 -ExpandProperty FullName
+            throw "Expected executable not found: $exe"
+          }
+          windeployqt --release --compiler-runtime --qmldir app/qml $exe
+
+      - name: Package portable zip
+        shell: pwsh
+        run: Compress-Archive -Path build/app/* -DestinationPath Serial-Studio-GPL3-win64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Serial-Studio-GPL3-win64
+          path: Serial-Studio-GPL3-win64.zip
+          if-no-files-found: error
