@@ -42,10 +42,16 @@ jobs:
         shell: pwsh
         run: Add-Content $env:GITHUB_PATH 'D:\Qt\6.10.2\msvc2022_64\bin'
 
+      - name: List installed Qt module configs (debug)
+        shell: pwsh
+        run: Get-ChildItem 'D:\Qt\6.10.2\msvc2022_64\lib\cmake' -Name
+
       - name: Configure (GPLv3 free build)
         shell: pwsh
         run: >
           cmake -B build -G Ninja
+          -DCMAKE_PREFIX_PATH=D:/Qt/6.10.2/msvc2022_64
+          --debug-find-pkg=Qt6Graphs
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_GPL3=ON
           -DBUILD_COMMERCIAL=OFF
