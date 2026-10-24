@@ -99,7 +99,7 @@ static QVector<QPair<QColor, QColor>> extractDeviceColors(const QJsonObject& col
  */
 Misc::ThemeManager::ThemeManager()
   : m_theme(0)
-  , m_colorMap(QQmlPropertyMap::create(this))
+  , m_colorMap(new QQmlPropertyMap(this))
   , m_applyingTheme(false)
   , m_persistSettings(true)
 {
